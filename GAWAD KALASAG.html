@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAWAD KALASAG 2025 Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231e3a8a'/%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none' d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' /%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* UI Base styles */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 10;
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+        }
+        .table-container {
+            max-height: 80vh;
+            overflow: auto;
+        }
+        .date-input {
+            font-size: 9px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 1px 2px;
+            width: 100%;
+        }
+        .gantt-cell {
+            width: 24px;
+            min-width: 24px;
+            border-right: 1px solid #f1f1f1;
+            background: white;
+        }
+        .gantt-active {
+            background-color: #2563eb !important;
+        }
+        .category-header {
+            background: #1e3a8a !important;
+            color: white !important;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .indicator-header {
+            background: #f1f5f9 !important;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 10px;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        /* Editable Areas */
+        .editable-cell {
+            min-height: 30px;
+            width: 100%;
+            padding: 4px;
+            font-size: 11px;
+            line-height: 1.4;
+            outline: none;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .editable-cell:focus {
+            background: #fff;
+            box-shadow: inset 0 0 0 1px #3b82f6;
+            border-radius: 4px;
+        }
+        .editable-cell:empty:before {
+            content: attr(placeholder);
+            color: #9ca3af;
+        }
+
+        /* Gantt Toggle Logic */
+        .gantt-hidden .gantt-col, 
+        .gantt-hidden .target-range-col {
+            display: none !important;
+        }
+        .gantt-hidden #main-table {
+            min-width: 100% !important;
+        }
+
+        /* Category Progress Bars */
+        .category-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-left: 4px solid #2563eb;
+        }
+        .category-progress-bar {
+            flex: 1;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .category-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            transition: width 0.5s ease;
+        }
+
+        /* PDF/PRINT FIXES */
+        @media print {
+            .no-print { display: none 
+                !important; }
+            
+            .html, body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 5 !important;
+                padding-top: 6mm !important;
+                padding-bottom: 6mm !important;
+            }
+
+            @page {
+                margin: 18mm 10mm 18mm 10mm; 
+            }
+
+            #capture-area {
+                padding: 0 6mm !important;
+                box-sizing: border-box;
+            }
+
+            *{
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            .logo-box {
+            background-color: #1e3a8a !important;
+            }
+
+            .logo-box svg {
+                stroke: white !important;
+                fill: none !important;
+            }
+
+            header {
+                page-break-inside: avoid !important;
+                padding-left: 6mm !important;
+                padding-right: 6mm !important;
+                margin-top: 6mm !important;
+            margin-bottom: 6mm !important;
+            }
+
+            .max-w-\[98\%\] {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 5 !important;
+                padding: 5 !important;
+            }
+            
+            .table-container {
+                max-height: 98% !important;
+                overflow: visible !important;
+                max-width: 98% !important;
+                margin: auto !important;
+            }
+
+            #main-table {
+                min-width: auto !important;
+                width: 100% !important;
+                table-layout: auto !important;
+            }
+
+            .gantt-col, .target-range-col { display: table-cell !important; }
+            .sticky-col { position: static !important; left: auto !important; }
+
+            th, td {
+                font-size: 7pt !important;
+                border: 1pt solid #ccc !important;
+                padding: 6px 4px !important;
+                overflow: visible !important;
+            }
+
+            .mov-col { width: 30% !important; }
+            .status-col { width: 25pt !important; }
+            .target-range-col { width: 60pt !important; }
+            .focal-col { width: 12% !important; }
+            .gantt-cell { width: 18pt !important; min-width: 18pt !important; }
+            .remarks-col { width: auto !important; }
+
+            .category-header { 
+                background-color: #1e3a8a !important; 
+                -webkit-print-color-adjust: exact; 
+                color-adjust: exact;
+                color: white !important;
+                page-break-after: avoid !important;
+            }
+            .indicator-header {
+                background-color: #f1f5f9 !important; 
+                -webkit-print-color-adjust: exact; 
+                color-adjust: exact;
+            }
+            .gantt-active {
+                background-color: #2563eb !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .gantt-cell {
+                background-color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .category-progress {
+                page-break-inside: avoid !important;
+                padding: 6px 12px !important;
+            }
+            input[type="checkbox"]:checked::after {
+                content: "✓";
+                display: block;
+                text-align: center;
+                color: #2563eb;
+                font-weight: bold;
+            }
+        }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-item {
+            padding: 10px 15px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover { background-color: #f9fafb; color: #1e40af; }
+
+        .sticky-col{position:sticky;left:0;background:#fff;z-index:10;box-shadow:2px 0 5px -2px rgba(0,0,0,.1)}
+        .table-container{max-height:80vh;overflow:auto}
+        .date-input{font-size:9px;border:1px solid #e5e7eb;border-radius:4px;padding:1px 2px;width:100%}
+        .gantt-cell{width:24px;min-width:24px;border-right:1px solid #f1f1f1;background:white}
+        .gantt-active{background:#2563eb!important}
+        .category-header{background:#1e3a8a!important;color:white!important;font-weight:800;text-transform:uppercase;font-size:11px}
+        .indicator-header{background:#f1f5f9!important;font-weight:700;color:#0f172a;font-size:10px;border-bottom:2px solid #cbd5e1}
+        .editable-cell{min-height:30px;padding:4px;font-size:11px;outline:none}
+        .gantt-hidden .gantt-col,.gantt-hidden .target-range-col{display:none!important}
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans text-xs">
+
+    <div class="max-w-[98%] mx-auto py-6" id="capture-area">
+        <!-- Dashboard Header -->
+        <header class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6 flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-900 p-3 rounded-xl text-white shadow-lg logo-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-blue-900 tracking-tight uppercase">Gawad Kalasag 2025</h1>
+                    <p class="text-gray-500 font-bold text-[11px] uppercase tracking-widest">Compliance Document Tracker</p>
+                </div>
+            </div>
+
+            <div class="flex-1 max-w-xl w-full">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-xs font-bold text-blue-900 uppercase">Total Progress</span>
+                    <span id="overall-percent" class="text-lg font-black text-blue-900">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 h-4 rounded-full overflow-hidden border border-gray-300 shadow-inner">
+                    <div id="overall-progress-fill" class="h-full bg-blue-600 transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-1 text-[10px] text-gray-500 font-bold uppercase">
+                    <span id="overall-count">0 / 0 MOVs Collected</span>
+                    <span id="overall-remaining" class="no-print text-blue-600">Remaining: 0</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 no-print">
+                <button onclick="toggleGantt()" class="bg-white border-2 border-gray-200 hover:border-blue-300 text-gray-700 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                    Toggle View
+                </button>
+                <button onclick="saveData()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md transition-all">Save All</button>
+                
+                <div class="dropdown">
+                    <button class="bg-blue-800 hover:bg-blue-900 text-white px-5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Export
+                    </button>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item" onclick="window.print()">Browser Print</div>
+                        <div class="dropdown-item" onclick="exportToPDF()">Generate PDF Report</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Table -->
+        <div id="table-wrapper" class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div class="table-container">
+                <table class="w-full text-left border-collapse" id="main-table">
+                    <thead>
+                        <tr class="bg-gray-100 text-[10px] font-bold text-gray-700 uppercase">
+                            <th rowspan="2" class="p-4 sticky-col border-b border-r bg-gray-100 w-[500px] mov-col">MOV Checklist / Indicators</th>
+                            <th rowspan="2" class="p-2 border-b border-r text-center w-14 status-col">Done</th>
+                            <th rowspan="2" class="p-2 border-b border-r text-center w-36 bg-blue-50/50 target-range-col">Timeline</th>
+                            <th rowspan="2" class="p-4 border-b border-r text-center w-48 focal-col">Focal / Assigned Person</th>
+                            <th colspan="4" class="p-1 border-b border-r text-center bg-blue-50 gantt-col">Jan</th>
+                            <th colspan="4" class="p-1 border-b border-r text-center bg-gray-50 gantt-col">Feb</th>
+                            <th colspan="4" class="p-1 border-b border-r text-center bg-blue-50 gantt-col">Mar</th>
+                            <th colspan="4" class="p-1 border-b border-r text-center bg-gray-50 gantt-col">Apr</th>
+                            <th colspan="4" class="p-1 border-b border-r text-center bg-blue-50 gantt-col">May</th>
+                            <th rowspan="2" class="p-4 border-b text-center remarks-col">Remarks / Observations</th>
+                        </tr>
+                        <tr class="bg-gray-50 text-[8px] text-center">
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W1</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W2</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W3</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W4</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W1</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W2</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W3</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W4</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W1</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W2</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W3</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W4</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W1</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W2</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W3</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W4</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W1</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W2</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W3</th>
+                            <th class="p-1 border-b border-r w-[24px] gantt-col">W4</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tracker-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const trackerData = [
+            {
+                category: "I. STRUCTURE",
+                sections: [
+                    {
+                        title: "Indicator 1.1 – Establishment of LDRRMC",
+                        indicators: [
+                            { 
+                                name: "Legal and Composition Requirements", 
+                                movs: [
+                                    "A. Sanggunian Ordinance or Resolution or Executive Order establishing the LDRRMC",
+                                    "B. Composition of LDRRMC based on RA 10121 (16 mandatory members with at least four accredited CSO and at least one private sector representative)",
+                                    "C. Certification and / or proof of Legal personality, e.g. Accreditation, certificate from LGU, SEC Registration, of the CSOs/PS Representatives"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.2 – Convene the LDRRMC quarterly or as necessary",
+                        indicators: [
+                            { 
+                                name: "Meeting Documentation", 
+                                movs: [
+                                    "Minutes of the Meeting",
+                                    "Attendance of members to LDRRMC Meetings",
+                                    "LDRRMC Resolutions (as applicable)",
+                                    "Photo documentation (as supporting document)",
+                                    "Electronic Attendance Sheet such as record of Zoom attendance, google sheet with timestamp, etc."
+                                ] 
+                            },
+                            {
+                                name: "Other Meetings",
+                                movs: [
+                                    "Special/Emergency Council Meetings but not PDRA",
+                                    "Joint Council Meeting with DRRM-related Agenda",
+                                    "DRRM-related full council meeting facilitated by LDRRMO"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.3 – Organization of DRRMC",
+                        indicators: [
+                            { 
+                                name: "DRRMC Compliance", 
+                                movs: [
+                                    "Sanggunian Ordinance / Resolutions / Executive Orders on the establishments of BDRRMCs",
+                                    "Summary list of LGUs with organized DRRMCs"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.4 – Secretariat and Executive Arm of LDRRMC",
+                        indicators: [
+                            { 
+                                name: "Historical and Functional Evidence", 
+                                movs: [
+                                    "Minutes of Council Meeting within the last 3 years",
+                                    "Attendance of the meetings within the last 3 years",
+                                    "Guidelines / protocols / policies / and/or plans (if applicable)",
+                                    "Council / committee resolutions within the last 3 years (if applicable)",
+                                    "Photo documentation (if applicable, as supporting documents)"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.5 – Creation of LDRRM Office",
+                        indicators: [
+                            { 
+                                name: "Office Establishment & Facilities", 
+                                movs: [
+                                    "Sanggunian Ordinance or Resolution or Executive Order creating the LDRRMO with budget appropriation and creation of plantilla positions",
+                                    "LDRRM Office organization structure (MOV is contributory to post-disaster planning)",
+                                    "Special provision on disaster risk reduction and management in the Ordinance or Sanggunian Resolution or Executive Order creating the special DRRMO office in the LGU",
+                                    "Physical Structure and facilities for the LDRRM Office as a separate office space or housed as a separate building",
+                                    "Payment receipt of Insurance of the building"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.6 – LDRRMO Staffing / Personnel Complement",
+                        indicators: [
+                            { 
+                                name: "Staffing Evidence", 
+                                movs: [
+                                    "Appointment Papers",
+                                    "CSC Attestation",
+                                    "Local Budget Preparation (LBP) Form No. 3"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.7 – Local DRRM Officer",
+                        indicators: [
+                            { 
+                                name: "1.7.1 Appointment & 1.7.2 Competency", 
+                                movs: [
+                                    "Appointment Paper (MOV is contributory to post-disaster planning)",
+                                    "Statement of duties and responsibilities of LDRRM Officer (MOV is contributory to post-disaster planning)",
+                                    "CSC Attestation",
+                                    "For designated (OIC or serving in concurrent capacity) LDRRMO Head, presence of Executive Order or any relevant issuances assigning as the LDRRMO Head",
+                                    "Duly Notarized Personal Data Sheet",
+                                    "Certificate of completion of trainings and seminars attended (local and international)"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.8 – Establishment of Prov/City/Mun DRRM Operations Center",
+                        indicators: [
+                            { 
+                                name: "OpCen Functionality", 
+                                movs: [
+                                    "Executive Order or similar issuance for the creation of 24/7 Operations Center",
+                                    "OpCen duty logbook",
+                                    "SOP / OpCen Manuals",
+                                    "Organizational Structure",
+                                    "Updated and signed Inventory of Equipment",
+                                    "Payment receipt of Insurance of OpCen Building",
+                                    "Photo documentation on the activation of OpCen as supporting document",
+                                    "Notarized MOA / MOU for the alternative site / as stated in their PSCP if applicable"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 1.9 – Organization and Competence of Local Emergency Response Teams (ERTs)",
+                        indicators: [
+                            { 
+                                name: "ERT Preparedness & Training", 
+                                movs: [
+                                    "Training Needs Assessment / Training Plan / Career Development Plan",
+                                    "Updated Roster or directory or organizational structure of ERTS",
+                                    "Updated and signed Table of equipment / list of equipage",
+                                    "Organizational Structure / NOSCA / Fill-up Rate",
+                                    "List of personnel with respective trainings attended Certificate / Receipt of payment of LDRRMO personnel Insurance",
+                                    "Recognition or Resolution or Order from the Sanggunian or other appropriate authority in the LGU",
+                                    "Certificate of DRRM-related capacity enhancements trainings attended",
+                                    "Office Order / After-Activity Report"
+                                ] 
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: "II. COMPETENCY",
+                sections: [
+                    {
+                        title: "Indicator 2.1 – Facilitation and Support to Risk Assessment",
+                        indicators: [
+                            {
+                                name: "Risk Profile & Documentation",
+                                movs: [
+                                    "Presence of Risk Profile",
+                                    "Result of risk assessment / Risk profile (CDRA, CBRA, VRA, GIS, Risk Maps, GeoRiskPH, REDAS, etc.)",
+                                    "Attendance sheet and signed AAR for the conduct of risk assessment",
+                                    "Photo documentation"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.2 – Maintenance of Local Risk Maps",
+                        indicators: [
+                            {
+                                name: "Hazard and Risk Mapping",
+                                movs: [
+                                    "Photos and PDF of Hazard and Risk maps with scale of 1:50,000 (updated, digitized GIS maps)",
+                                    "Vulnerability and Susceptibility maps with scale of 1:50,000 (updated, digitized GIS maps)"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.3 – Operation of Multi-Hazard End-to-End EWS",
+                        indicators: [
+                            {
+                                name: "2.3.1 Continuous Monitoring",
+                                movs: [
+                                    "LDRRMC-approved and Sanggunian-adopted SOP or Manual on EWS",
+                                    "Traditional and indigenous mean of monitoring"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.4 – Designing, Programming and Coordination",
+                        indicators: [
+                            {
+                                name: "LDRRM Planning Compliance",
+                                movs: [
+                                    "Reviewed LDRRMP using NDRRMC prescribed template",
+                                    "Approved LDRRMP with Sanggunian Resolution",
+                                    "Reviewing authority is either OCD or per NDRRMC 147",
+                                    "Presence of DRRM Plan"
+                                ]
+                            },
+                            {
+                                name: "Barangay & Review Teams",
+                                movs: [
+                                    "List of submitted approved BDRRMPs",
+                                    "Consolidated Resolution of lower LGUs",
+                                    "Organization of Municipal / City Review Team"
+                                ]
+                            },
+                            {
+                                name: "LCCAP & Other Plans",
+                                movs: [
+                                    "Local Climate Change Action Plan (LCCAP)",
+                                    "Approved PDPFP / CLUP / CDP",
+                                    "Certification of Submission by CCC",
+                                    "Approved hazard-specific Contingency Plans (2 hazards)"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.5 – Monitor and Evaluate LDRRMPs",
+                        indicators: [
+                            {
+                                name: "Evaluation Evidence",
+                                movs: [
+                                    "Certificate of LDRRMP Review",
+                                    "Monitoring and Evaluation Report",
+                                    "Accomplishment Reports"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.6 – Capacity Building",
+                        indicators: [
+                            {
+                                name: "Training Records",
+                                movs: [
+                                    "Post-Training Report",
+                                    "Attendance Sheet",
+                                    "List of Pool of Trainers"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.7 – Pre-Emptive / Forced Evacuation",
+                        indicators: [
+                            {
+                                name: "Evacuation Policy & Reporting",
+                                movs: [
+                                    "Policy / SOP",
+                                    "Sanggunian Ordinance",
+                                    "Executive Order",
+                                    "LDRRMC Resolution",
+                                    "Situation Report (SitRep)"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.8 – Pre-Positioning",
+                        indicators: [
+                            {
+                                name: "Stockpile & Logistics",
+                                movs: [
+                                    "Inventory of stockpile",
+                                    "MOU / MOA with suppliers",
+                                    "Contingency Plan",
+                                    "Photo Documentation",
+                                    "Inventory of Donation Management"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.9 – Camp Coordination and Camp Management",
+                        indicators: [
+                            {
+                                name: "CCCM Compliance",
+                                movs: [
+                                    "Camp Management Plan",
+                                    "Documentation Report",
+                                    "Certificates of Training",
+                                    "Availability of Camp Kits",
+                                    "Age and Sex Disaggregated Data",
+                                    "Minimum Health Standards Documentation",
+                                    "Information Board and IEC Materials"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.10 – Disaster Response Operations",
+                        indicators: [
+                            {
+                                name: "Operational Readiness",
+                                movs: [
+                                    "Normal Conditions SOP",
+                                    "Alert Conditions Protocol",
+                                    "ICS Forms Compliance",
+                                    "Signed SitReps",
+                                    "Declaration of State of Calamity (if applicable)",
+                                    "Office Orders for Response Teams"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 2.11 – Early Recovery and Rehabilitation",
+                        indicators: [
+                            {
+                                name: "Early Recovery Plans",
+                                movs: [
+                                    "Rehabilitation and Recovery Program",
+                                    "Sanggunian Ordinance",
+                                    "Executive Order",
+                                    "LDRRMC Resolution",
+                                    "Situation Report (SitRep)"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "2.12 – Formulation of Rehabilitation and Recovery Program",
+                        indicators: [
+                            {
+                                name: "Rehabilitation Program Compliance",
+                                movs: [
+                                    "Sanggunian approved local budget for LDRRMF",
+                                    "Approved allocation for rehab and recovery projects in the local budget",
+                                    "Insurance policy for assets insured under GSIS and other disaster related insurance (i.e. crop insurance)",
+                                    "Other standby financing sources for rehabilitation and recovery projects and activities",
+                                    "Listing of farmer enrolled beneficiaries to crop insurance of DA"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: "III. MANAGEMENT SYSTEM",
+                sections: [
+                    {
+                        title: "Indicator 3.1 - Hazard-specific SOPs",
+                        indicators: [
+                            {
+                                name: "Established Standard Operating Procedures",
+                                movs: [
+                                    "Approved and Updated Hazard-Specific SOPs (CP/Response Plan including Operational Listo)",
+                                    "Accomplished Form for Operation LISTO (Monitoring of LGU'S DRRM Actions)",
+                                    "AAR of SIMEX based on the SOP / CP in the last 3 years",
+                                    "Situational and/or Incident Reports, Advisories",
+                                    "Regular submission of reports to the OCDROS, DILG ROS, and Provincial DRRMO, as applicable",
+                                    "Updated organizational structure of Incident Management Team (IMT)/ICS",
+                                    "All IMT members are trained in ICS",
+                                    "Submission of Incident Action Plan when activated"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 3.2 - Ensure the integration of risk reduction and climate change adaptation into local development plans, and budgets as strategy in sustainable development and poverty reduction",
+                        indicators: [
+                            {
+                                name: " Integration of DRR-CCA in Local Development Plans",
+                                movs: [
+                                    "Sanggunian approved CLUP duly endorsed to the Department of Human Settlements and Urban Development (DHSUD) for review and approval of the Secretary",
+                                    "Approved risk-informed Comprehensive Development Plan",
+                                    "Sanggunian Bayan / Panglungsod Resolution approving the LDIP and AIP that contains DRR/CCA PPAs",
+                                    "Certification from Provincial Land Use Committee (PLUC) or Regional/Central DHSUD stating that the final draft is currently under review and results of risk assessment is already incorporated therein if CLUP is yet to be approved",
+                                    "Sanggunian Resolution adopting the approval the CDP including LDIP and AIP for the current planning period",
+                                    "CDP Assessment Result certified by the CDP Technical Assessment Committee (TAC)"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 3.3 - Programming and budgeting for LDRRMF and the other DRRM resources / funding and budgetary support to LDRRMO",
+                        indicators: [
+                            {
+                                name: "3.3.1. Submission of the utilization of the LDRRMF and other DRRM- related resources",
+                                movs: [
+                                    "Approved Local DRRM Fund Investment Plan (Annual or Multi-Year)",
+                                    "List of PPAs indicated in the LDRRMP",
+                                    "Approved Annual Investment Program",
+                                    "LDRRMF utilization report / Implementation Report Accomplishment Report",
+                                    "Statement of Receipts and Expenditures",
+                                    "Regular (monthly) submission of LDRRMF",
+                                    "Utilization Report to COA, copy furnished OCD and DILG"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: "IV. ENABLING POLICIES",
+                sections: [
+                    {
+                        title: "Indicator 4.1 - Recommendation to enact DRRM-related ordinances through the LDRRMC",
+                        indicators: [
+                            {
+                                name: "A.LDRRM Council recommendation DRRM-related policies",
+                                movs: [
+                                    "Approved and Updated Sanggunian-adopted DRRM-related Ordinances for the year being assessed",
+                                    "Council/Committee LDRRMC Resolutions",
+                                    "Proposed DRRM-related ordinances",
+                                    "Minutes of the Sanggunian sessions where such ordinance was discussed and/or enacted"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: "V. KNOWLEDGE MANAGEMENT AND ADVOCACY",
+                sections: [
+                    {
+                        title: "Indicator 5.1 - Local Disaster Database Resource",
+                        indicators: [
+                            {
+                                name: " Disaster Database Management",
+                                movs: [
+                                    "Dated and duly approved by proper authority database of human resources, equipment, critical facilities",
+                                    "List of Permanent Evacuation Centers",
+                                    "Website / Social Media containing directory (e.g. address of hospitals / evacuation centers / contact details)",
+                                    "Posted and disseminated directory (For LGUs without internet connection)",
+                                    "Databases of socioeconomic and disaster related statistics and maps (MOVs are contributory to post-disaster planning)",
+                                    "Refer to Annex A of Rehab and Recovery Planning Guide",
+                                    "examples of GIS: QGIS, GeoAnalyticsPH from GeoRiskPH",
+                                    "CDRA (database)",
+                                    "Operations manual of the management information system (MOVs are contributory to post-disaster planning)"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Indicator 5.2 - Conducted information dissemination and public awareness",
+                        indicators: [
+                            {
+                                name: " Disaster Database Management",
+                                movs: [
+                                    "IEC Program on RA 10121 and related laws, Disaster Preparedness, and EWS",
+                                    "Post-activity reports on the conduct of drills and other related IEC activities conducted",
+                                    "Presence of actual IEC materials (e.g. posters / flyers / online pubmats)",
+                                    "Hazards maps and signages displayed in conspicuous areas",
+                                    "Issuance of advisories (e.g. social media / email / receiving copies / logbooks)"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: "VI. PARTNERSHIP AND PARTICIPATION",
+                sections: [
+                    {
+                        title: "Indicator - 6.1.Develop, strengthen and operationalize mechanisms for partnership or networking with the private sector, CSOs, and volunteer groups.",
+                        indicators: [
+                            {
+                                name: "",
+                                movs: [
+                                    "Post-Activity Report",
+                                    "Service Level Agreements / MOU / notarized MOA with LGUs, CSOs, Private groups and organized volunteers",
+                                    "Signed / Approved Contingency Plan",
+                                    "List of accredited CSOs, Private groups, or Volunteers",
+                                    "Incident Action Plan (for LGUs with disasters)",
+                                    "Certificate of Accreditation for CSOs or Volunteers",
+                                    "any means of recognition/s from local, regional or national given to the LGU"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        function toggleGantt() {
+            const wrapper = document.getElementById('table-wrapper');
+            wrapper.classList.toggle('gantt-hidden');
+            localStorage.setItem('gk_gantt_hidden', wrapper.classList.contains('gantt-hidden'));
+        }
+
+        async function exportToPDF() {
+            const captureArea = document.getElementById('capture-area');
+            const originalClass = document.getElementById('table-wrapper').className;
+            
+            captureArea.classList.add('export-active');
+            
+            // Force show gantt for PDF
+            document.getElementById('table-wrapper').classList.remove('gantt-hidden');
+
+            const opt = {
+                margin: [5, 5, 5, 5],
+                filename: 'GK_2025_Compliance_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 1.2, 
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true
+                },
+                jsPDF: { unit: 'inch', format: 'letter', orientation: 'landscape' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            try {
+                await new Promise(r => setTimeout(r, 800));
+                await html2pdf().set(opt).from(captureArea).save();
+            } finally {
+                captureArea.classList.remove('export-active');
+                document.getElementById('table-wrapper').className = originalClass;
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tracker-body');
+            tbody.innerHTML = '';
+            let docCounter = 0;
+            let categoryIndex = 0;
+
+            trackerData.forEach(cat => {
+                const catId = `cat-${categoryIndex}`;
+                
+                // Category Header Row
+                const catRow = document.createElement('tr');
+                catRow.innerHTML = `<td colspan="32" class="p-3 px-5 category-header border-b-2 border-blue-900">${cat.category}</td>`;
+                tbody.appendChild(catRow);
+
+                // Category Progress Bar Row
+                const progressRow = document.createElement('tr');
+                progressRow.innerHTML = `
+                    <td colspan="32" class="category-progress">
+                        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                            <span class="text-[10px] font-bold text-gray-700" style="min-width: 100px;">Category Progress:</span>
+                            <div class="category-progress-bar" style="flex: 1;">
+                                <div id="cat-progress-${catId}" class="category-progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="cat-percent-${catId}" class="text-xs font-black text-blue-900" style="min-width: 80px; text-align: right;">0% (0/0)</span>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(progressRow);
+
+                cat.sections.forEach(sec => {
+                    const secRow = document.createElement('tr');
+                    secRow.innerHTML = `<td colspan="32" class="p-2 px-8 bg-gray-50 font-bold border-b text-blue-800">${sec.title}</td>`;
+                    tbody.appendChild(secRow);
+
+                    sec.indicators.forEach(ind => {
+                        const indRow = document.createElement('tr');
+                        indRow.innerHTML = `<td colspan="32" class="p-2 px-10 indicator-header uppercase tracking-wide">${ind.name}</td>`;
+                        tbody.appendChild(indRow);
+                        
+                        ind.movs.forEach((mov) => {
+                            const id = `mov-${docCounter++}`;
+                            const row = document.createElement('tr');
+                            row.className = "hover:bg-blue-50/30 border-b border-gray-100 transition-colors";
+                            row.dataset.category = catId;
+                            
+                            let ganttCells = "";
+                            for(let i=0; i<20; i++) ganttCells += `<td id="gcell-${id}-${i}" class="gantt-cell gantt-col"></td>`;
+
+                            row.innerHTML = `
+                                <td class="p-3 sticky-col border-r bg-white pl-14 text-gray-700 leading-relaxed mov-col">
+                                    <span class="text-blue-400 mr-2">•</span>${mov}
+                                </td>
+                                <td class="p-1 border-r text-center status-col">
+                                    <input type="checkbox" id="chk-${id}" class="w-5 h-5 accent-blue-700 cursor-pointer checkbox-mov" data-category="${catId}">
+                                </td>
+                                <td class="p-2 border-r bg-blue-50/5 target-range-col">
+                                    <div class="flex flex-col gap-1">
+                                        <input type="date" id="start-${id}" class="date-input">
+                                        <input type="date" id="end-${id}" class="date-input">
+                                    </div>
+                                </td>
+                                <td class="p-2 border-r focal-col">
+                                    <div id="focal-${id}" contenteditable="true" class="editable-cell text-center" placeholder="Assign person..."></div>
+                                </td>
+                                ${ganttCells}
+                                <td class="p-2 remarks-col">
+                                    <div id="rem-${id}" contenteditable="true" class="editable-cell" placeholder="Remarks..."></div>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    });
+                });
+
+                categoryIndex++;
+            });
+
+            if(localStorage.getItem('gk_gantt_hidden') === 'true') {
+                document.getElementById('table-wrapper').classList.add('gantt-hidden');
+            }
+            loadSavedData();
+        }
+
+        let progressRAF = null;
+
+        function updateAllProgress() {
+            if (progressRAF) return;
+
+            progressRAF = requestAnimationFrame(() => {
+                updateOverallProgress();
+                updateCategoryProgress();
+                progressRAF = null;
+            });
+        }
+
+        function updateOverallProgress() {
+            const allChecks = document.querySelectorAll('.checkbox-mov');
+            const checkedCount = Array.from(allChecks).filter(c => c.checked).length;
+            const totalCount = allChecks.length;
+            const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+            document.getElementById('overall-progress-fill').style.width = percentage + '%';
+            document.getElementById('overall-percent').innerText = percentage + '%';
+            document.getElementById('overall-count').innerText = `${checkedCount} / ${totalCount} MOVs Collected`;
+            document.getElementById('overall-remaining').innerText = `Remaining: ${totalCount - checkedCount}`;
+        }
+
+        function updateCategoryProgress() {
+            const categories = {};
+            document.querySelectorAll('.checkbox-mov').forEach(checkbox => {
+                const catId = checkbox.dataset.category;
+                if (!categories[catId]) {
+                    categories[catId] = { total: 0, checked: 0 };
+                }
+                categories[catId].total++;
+                if (checkbox.checked) {
+                    categories[catId].checked++;
+                }
+            });
+
+            Object.keys(categories).forEach(catId => {
+                const { total, checked } = categories[catId];
+                const percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
+                const fillEl = document.getElementById(`cat-progress-${catId}`);
+                const percentEl = document.getElementById(`cat-percent-${catId}`);
+                
+                if (fillEl) fillEl.style.width = percentage + '%';
+                if (percentEl) percentEl.innerText = `${percentage}% (${checked}/${total})`;
+            });
+        }
+
+        function saveData() {
+            const state = {};
+            document.querySelectorAll('input').forEach(el => {
+                state[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+            });
+            document.querySelectorAll('.editable-cell').forEach(el => {
+                state[el.id] = el.innerText;
+            });
+            localStorage.setItem('gk_state_v3_enhanced', JSON.stringify(state));
+            alert('All updates saved successfully!');
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem('gk_state_v3_enhanced');
+            if (!saved) { updateAllProgress(); return; }
+            const state = JSON.parse(saved);
+            Object.keys(state).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.classList.contains('editable-cell')) el.innerText = state[id];
+                    else if (el.type === 'checkbox') el.checked = state[id];
+                    else el.value = state[id];
+                    
+                    if (id.startsWith('start-') || id.startsWith('end-')) {
+                        const movId = id.split('-').slice(1).join('-');
+                        updateGantt(movId);
+                    }
+                }
+            });
+            updateAllProgress();
+        }
+
+        function getMonthPlanningWeeks(year, monthIdx) {
+    const weeks = [];
+
+    const monthStart = new Date(year, monthIdx, 1);
+    const monthEnd   = new Date(year, monthIdx + 1, 0);
+
+    monthStart.setHours(0, 0, 0, 0);
+    monthEnd.setHours(23, 59, 59);
+
+    // Find first Sunday ON or AFTER the 1st
+    let currentStart = new Date(monthStart);
+    if (currentStart.getDay() !== 0) {
+        currentStart.setDate(currentStart.getDate() + (7 - currentStart.getDay()));
+    }
+
+    while (weeks.length < 4) {
+        const currentEnd = new Date(currentStart);
+        currentEnd.setDate(currentStart.getDate() + 6);
+        currentEnd.setHours(23, 59, 59);
+
+        // ACCEPT if:
+        // - fully inside month OR
+        // - starts inside month (even if it ends next month)
+        if (currentStart >= monthStart) {
+            weeks.push({
+                start: new Date(currentStart),
+                end: new Date(currentEnd)
+            });
+        }
+
+        currentStart.setDate(currentStart.getDate() + 7);
+    }
+
+    return weeks;
+}
+
+        function updateGantt(id) {
+            const startInput = document.getElementById(`start-${id}`);
+            const endInput   = document.getElementById(`end-${id}`);
+            if (!startInput || !endInput) return;
+
+            const startVal = startInput.value;
+            const endVal   = endInput.value;
+
+            // Clear cells
+            for (let i = 0; i < 20; i++) {
+                const cell = document.getElementById(`gcell-${id}-${i}`);
+                if (cell) cell.classList.remove('gantt-active');
+            }
+
+            if (!startVal || !endVal) return;
+
+            const startDate = new Date(startVal + 'T00:00:00');
+            const endDate   = new Date(endVal   + 'T23:59:59');
+            const year      = startDate.getFullYear();
+
+            // Only Jan–May
+            if (startDate.getMonth() > 4 || endDate.getMonth() < 0) return;
+
+            for (let i = 0; i < 20; i++) {
+                const monthIdx = Math.floor(i / 4); // Jan–May → 0–4
+                const weekIdx  = i % 4;             // W1–W4
+
+                const weeks = getMonthPlanningWeeks(year, monthIdx);
+                const { start: weekStart, end: weekEnd } = weeks[weekIdx];
+
+                // Overlap logic (calendar-accurate)
+                if (startDate <= weekEnd && endDate >= weekStart) {
+                    const cell = document.getElementById(`gcell-${id}-${i}`);
+                    if (cell) cell.classList.add('gantt-active');
+                }
+            }
+        }
+
+            document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('checkbox-mov')) {
+                updateAllProgress();
+            }
+
+            if (e.target.classList.contains('date-input')) {
+                const id = e.target.id.replace(/^(start|end)-/, '');
+                updateGantt(id);
+            }
+        });
+
+            window.onload = () => {
+                requestIdleCallback
+                ? requestIdleCallback(renderTable)
+                : setTimeout(renderTable, 0);
+            };
+
+    </script>
+</body>
+</html>
