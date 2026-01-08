@@ -36,7 +36,7 @@ The tracker covers the following **six (6) Gawad Kalasag Areas**:
 Each area includes:
 - Indicators
 - Sub-indicators
-- Detailed Measures of Verification (MOVs)
+- Detailed Means of Verification (MOVs)
 
 ---
 
